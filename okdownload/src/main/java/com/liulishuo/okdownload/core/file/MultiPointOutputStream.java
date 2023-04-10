@@ -114,7 +114,9 @@ public class MultiPointOutputStream {
         }
 
         final File file = task.getFile();
-        if (file != null) this.path = file.getAbsolutePath();
+        if (file != null) {
+            this.path = file.getAbsolutePath();
+        }
     }
 
     public MultiPointOutputStream(@NonNull DownloadTask task,
@@ -127,7 +129,9 @@ public class MultiPointOutputStream {
         // if this task has been canceled, there is no need to write because of the output stream
         // has been closed and there is no need to create a new output stream if this is a first
         // write of this task block
-        if (canceled) return;
+        if (canceled) {
+            return;
+        }
 
         outputStream(blockIndex).write(bytes, 0, length);
 
@@ -148,15 +152,21 @@ public class MultiPointOutputStream {
     }
 
     public synchronized void cancel() {
-        if (requireStreamBlocks == null) return;
-        if (canceled) return;
+        if (requireStreamBlocks == null) {
+            return;
+        }
+        if (canceled) {
+            return;
+        }
         canceled = true;
         // must ensure sync thread is finished, then can invoke 'ensureSync(true, -1)'
         // in try block, otherwise, try block will be blocked in 'ensureSync(true, -1)' and
         // codes in finally block will not be invoked
         noMoreStreamList.addAll(requireStreamBlocks);
         try {
-            if (allNoSyncLength.get() <= 0) return;
+            if (allNoSyncLength.get() <= 0) {
+                return;
+            }
             if (syncFuture != null && !syncFuture.isDone()) {
                 inspectValidPath();
                 OkDownload.with().processFileStrategy().getFileLock().increaseLock(path);
@@ -188,7 +198,9 @@ public class MultiPointOutputStream {
         noMoreStreamList.add(blockIndex);
 
         try {
-            if (syncException != null) throw syncException;
+            if (syncException != null) {
+                throw syncException;
+            }
 
             if (syncFuture != null && !syncFuture.isDone()) {
                 final AtomicLong noSyncLength = noSyncLengthMap.get(blockIndex);
@@ -219,7 +231,9 @@ public class MultiPointOutputStream {
 
     void ensureSync(boolean isNoMoreStream, int blockIndex) {
         // sync job not run yet.
-        if (syncFuture == null || syncFuture.isDone()) return;
+        if (syncFuture == null || syncFuture.isDone()) {
+            return;
+        }
 
         if (!isNoMoreStream) {
             parkedRunBlockThreadMap.put(blockIndex, Thread.currentThread());
@@ -266,7 +280,9 @@ public class MultiPointOutputStream {
     }
 
     void inspectAndPersist() throws IOException {
-        if (syncException != null) throw syncException;
+        if (syncException != null) {
+            throw syncException;
+        }
         if (syncFuture == null) {
             synchronized (syncRunnable) {
                 if (syncFuture == null) {
@@ -400,14 +416,18 @@ public class MultiPointOutputStream {
                 for (Integer blockIndex : state.newNoMoreStreamBlockList) {
                     final Thread parkedThread = parkedRunBlockThreadMap.get(blockIndex);
                     parkedRunBlockThreadMap.remove(blockIndex);
-                    if (parkedThread != null) unparkThread(parkedThread);
+                    if (parkedThread != null) {
+                        unparkThread(parkedThread);
+                    }
                 }
 
                 if (state.isNoMoreStream) {
                     final int size = parkedRunBlockThreadMap.size();
                     for (int i = 0; i < size; i++) {
                         final Thread parkedThread = parkedRunBlockThreadMap.valueAt(i);
-                        if (parkedThread != null) unparkThread(parkedThread);
+                        if (parkedThread != null) {
+                            unparkThread(parkedThread);
+                        }
                     }
                     parkedRunBlockThreadMap.clear();
                     break;
@@ -504,7 +524,9 @@ public class MultiPointOutputStream {
             final boolean isFileScheme = Util.isUriFileScheme(task.getUri());
             if (isFileScheme) {
                 final File file = task.getFile();
-                if (file == null) throw new FileNotFoundException("Filename is not ready!");
+                if (file == null) {
+                    throw new FileNotFoundException("Filename is not ready!");
+                }
 
                 final File parentFile = task.getParentFile();
                 if (!parentFile.exists() && !parentFile.mkdirs()) {
@@ -573,6 +595,8 @@ public class MultiPointOutputStream {
     }
 
     private void inspectValidPath() {
-        if (path == null && task.getFile() != null) path = task.getFile().getAbsolutePath();
+        if (path == null && task.getFile() != null) {
+            path = task.getFile().getAbsolutePath();
+        }
     }
 }
